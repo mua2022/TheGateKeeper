@@ -167,12 +167,15 @@ TheGateKeeper/
 
 ├── main.py
 ## 7. Troubleshooting
-*Issue	Possible Cause	Solution*
-Camera not opening	Camera already in use or blocked	Close other apps or restart your computer
-Face not recognized	Poor lighting, image not trained	Ensure good lighting, retrain dataset
-Email not sent	Incorrect app password or email config	Check Gmail app password and internet access
-Timetable parse error	Wrong format or inconsistent labels	Use well-structured timetable PDFs
-GUI Freeze/Crash	Overloaded main thread	Let system complete processing before retry
+
+| Issue                | Possible Cause                            | Solution                                                              |
+|---------------------|-------------------------------------------|-----------------------------------------------------------------------|
+| Camera not opening  | Camera already in use or blocked          | Close other apps or restart your computer                             |
+| Face not recognized | Poor lighting, image not trained          | Ensure good lighting, retrain dataset                                 |
+| Email not sent      | Incorrect app password or email config    | Check Gmail app password and internet access                          |
+| Timetable parse error| Wrong format or inconsistent labels      | Use well-structured timetable PDFs                                     |
+| GUI Freeze/Crash    | Overloaded main thread                    | Let system complete processing before retry                            |
+
 
 ## 8. Maintenance & Backup
 Regularly backup the attendance.db file.
