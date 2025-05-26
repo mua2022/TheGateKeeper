@@ -5,6 +5,7 @@ Welcome to the AI University Student Logging System — a smart attendance and a
 
 ## 2. System Requirements
 *Hardware*
+
 Webcam (built-in or USB)
 
 Computer with minimum 4GB RAM
@@ -12,6 +13,7 @@ Computer with minimum 4GB RAM
 At least 10GB of free disk space
 
 *Software*
+
 Python 3.10 or higher
 
 Required libraries: face_recognition, opencv-python, tkinter, reportlab, sqlite3, smtplib, fitz, etc.
@@ -131,23 +133,34 @@ Create a Gmail App Password.
 Replace credentials in display.py or .env file:
 
 ``GMAIL_ADDRESS = "your_email@gmail.com"``
+
 ``GMAIL_APP_PASSWORD = "your_generated_app_password"``
 ## 6. Folder Structure
 
 TheGateKeeper/
+
 ├── gui/
 │   └── display.py
+
 ├── database/
 │   └── attendance.db
+
 ├── face_recognizer/
 │   └── trainer.py
+
 ├── utils/
 │   └── time_utils.py
+
 │   └── notification.py
+
 ├── student_images/
+
 ├── reports/
+
 ├── memos/
+
 ├── timetable_parser.py
+
 ├── main.py
 ## 7. Troubleshooting
 *Issue	Possible Cause	Solution*
