@@ -140,15 +140,19 @@ Replace credentials in display.py or .env file:
 TheGateKeeper/
 
 ├── gui/
+
 │   └── display.py
 
 ├── database/
+
 │   └── attendance.db
 
 ├── face_recognizer/
+
 │   └── trainer.py
 
 ├── utils/
+
 │   └── time_utils.py
 
 │   └── notification.py
