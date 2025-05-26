@@ -41,8 +41,8 @@ def parse_timetable_text(raw_text):
             continue
 
         if current_day and current_course:
-            if line.strip():
-                timetable_data[current_day][current_course].append(line.strip())
+            timetable_data.setdefault(current_day, {}).setdefault(current_course, []).append(line.strip())
+
 
     with open(TIMETABLE_JSON, "w") as f:
         json.dump(timetable_data, f, indent=4)

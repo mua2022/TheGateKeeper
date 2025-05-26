@@ -1,7 +1,61 @@
 {
-    "Monday": {},
-    "Tuesday": {},
-    "Wednesday": {},
-    "Thursday": {},
-    "Friday": {}
+    "Monday": {
+        "bsey1s2": [
+            "Mr. kibe",
+            "CSE2126 SAD",
+            "8.00-10.00 AM"
+        ],
+        "bsey2s2": [
+            "Dr. Liech",
+            "CSE2231 DB2",
+            "8.00-11.00 AM"
+        ],
+        "bsey3s2": [
+            "Njiru Nick",
+            "CSE2321 DSA",
+            "11.00-1.00 PM"
+        ],
+        "bsey4s2": [
+            "Prof. Odeo",
+            "CSE2421 CSEC",
+            "2.00-5.00 PM"
+        ],
+        "bity1s2": [
+            "Charles Njigi",
+            "CCS2122 SE",
+            "8.00-10.00 AM"
+        ],
+        "bity2s2": [
+            "Geofrey Manoti",
+            "CCS2222 ODE",
+            "11.00-1.00 PM"
+        ],
+        "bity3s2": [
+            "Alex Smith",
+            "CCS2321 DS",
+            "11.00-1.00 PM"
+        ],
+        "bity4s2": [
+            "Dr. Karanja Karis",
+            "CCS2421 EC",
+            "8.00-10.00 AM",
+            "bcty1s2",
+            "Eliza Shadrack",
+            "BCT2123 BN",
+            "2.00-5.00 PM",
+            "bcty2s2",
+            "Smith Kinyash",
+            "BCT2221 SN",
+            "8.00-10.00 AM",
+            "bcty3s2",
+            "Nderitu Kinuthia",
+            "BCT2324 CS",
+            "11.00-1.00 PM",
+            "bcty4s2",
+            "Dr. Muturi",
+            "BCT2425 CT",
+            "2.00-5.00 PM",
+            ""
+        ]
+    }
 }

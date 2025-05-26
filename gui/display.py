@@ -21,6 +21,7 @@ import smtplib
 from email.message import EmailMessage
 from utils.notification import notify_student_on_login
 from report_generator import ReportGenerator
+from home_dashboard import HomeDashboard
 
 GMAIL_ADDRESS = "muaemmanuel2022@gmail.com"          # Replace with your Gmail
 GMAIL_APP_PASSWORD = "zajx derh jmmz vpgu" 
@@ -51,17 +52,33 @@ class FaceRecognitionApp:
         self.encoding_file = ENCODE_FILE
         self.known_encodings, self.known_ids, self.known_labels = self.load_encodings()
 
+        # --- Header Frame ---
+        header_frame = tk.Frame(root, bg="#003366", height=50)
+        header_frame.pack(fill=tk.X)
+
+        # System Title
+        tk.Label(header_frame, text="AI Student Logging System", bg="#003366", fg="white",
+                font=("Arial", 14, "bold")).pack(side=tk.LEFT, padx=10, pady=10)
+
+        # Right-aligned buttons
+        btn_frame = tk.Frame(header_frame, bg="#003366")
+        btn_frame.pack(side=tk.RIGHT, padx=10)
+
+        tk.Button(btn_frame, text="❓ Support", bg="#005580", fg="white", command=lambda: messagebox.showinfo("Support", "Contact: muaemmanuel2022@gmail.com or Call: +254 758 514 602")).pack(side=tk.RIGHT, padx=5)
+        tk.Button(btn_frame, text="📘 User Manual", bg="#005580", fg="white", command=lambda: os.system("start https://github.com/mua2022/TheGateKeeper")).pack(side=tk.RIGHT, padx=5)
+        tk.Button(btn_frame, text="🏠 Home Dashboard", bg="#005580", fg="white", command=lambda: HomeDashboard(self.root)).pack(side=tk.RIGHT, padx=5)
+
         reg_frame = tk.LabelFrame(root, text="Control Panel")
         reg_frame.pack(side=tk.LEFT, padx=10, pady=10)
 
-        tk.Button(reg_frame, text="Start Camera", command=self.start_camera).grid(row=0, column=0, columnspan=2, pady=5)
-        tk.Button(reg_frame, text="Register Student", command=self.open_registration_form).grid(row=1, column=0, columnspan=2, pady=5)
-        tk.Button(reg_frame, text="Train Dataset", command=self.train_dataset).grid(row=2, column=0, columnspan=2, pady=5)
-        tk.Button(reg_frame, text="View Students", command=self.view_students).grid(row=3, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="📷 Start Camera", command=self.start_camera).grid(row=0, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="📝 Register Student", command=self.open_registration_form).grid(row=1, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="🧠 Train Dataset", command=self.train_dataset).grid(row=2, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="👨‍🎓 View Students", command=self.view_students).grid(row=3, column=0, columnspan=2, pady=5)
         tk.Button(reg_frame, text="📄 Generate Report", command=lambda: ReportGenerator(self.root)).grid(row=4, column=0, columnspan=2, pady=5)
-        tk.Button(reg_frame, text="Upload Memo", command=self.upload_memo).grid(row=5, column=0, columnspan=2, pady=5)
-        tk.Button(reg_frame, text="Upload Timetable", command=self.upload_timetable_pdf).grid(row=6, column=0,columnspan=2, pady=5)
-        tk.Button(reg_frame, text="Exit", command=self.root.quit).grid(row=7, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="📬Upload Memo", command=self.upload_memo).grid(row=5, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="🗓️Upload Timetable", command=self.upload_timetable_pdf).grid(row=6, column=0,columnspan=2, pady=5)
+        tk.Button(reg_frame, text="❌ Exit", command=self.root.quit).grid(row=7, column=0, columnspan=2, pady=5)
 
         cam_frame = tk.LabelFrame(root, text="Live Camera")
         cam_frame.pack(side=tk.RIGHT, padx=10, pady=10)
