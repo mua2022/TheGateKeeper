@@ -1,0 +1,6 @@
+[
+  {
+    "type": "sqlite",
+    "path": "e:\\TheGateKeeper\\database\\attendance.db"
+  }
+]

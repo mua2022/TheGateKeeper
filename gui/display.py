@@ -6,18 +6,41 @@ import face_recognition
 import numpy as np
 import os
 import sqlite3
-import threading
-import pickle
 from datetime import datetime
-
 from database.db_handler import log_attendance
 from face_recognizer.trainer import train_all_faces
 from register_student import StudentRegistrationForm
 from utils.time_utils import determine_status
+from timetable_parser import get_day_schedule_for_course
+import json
+from timetable_parser import extract_text_from_pdf, parse_timetable_text
+import threading
+import pickle
+import shutil
+import smtplib
+from email.message import EmailMessage
+from utils.notification import notify_student_on_login
+from report_generator import ReportGenerator
 
+GMAIL_ADDRESS = "muaemmanuel2022@gmail.com"          # Replace with your Gmail
+GMAIL_APP_PASSWORD = "zajx derh jmmz vpgu" 
 IMG_DIR = 'student_images'
 DB_PATH = 'database/attendance.db'
 ENCODE_FILE = 'face_recognizer/encodings.pkl'
+MEMO_DIR = 'memos'
+TT_DIR = 'timetables'
+
+if not os.path.exists(IMG_DIR):
+    os.makedirs(IMG_DIR)
+if not os.path.exists(DB_PATH):
+    os.makedirs(os.path.dirname(DB_PATH))
+if not os.path.exists(ENCODE_FILE):
+    with open(ENCODE_FILE, 'wb') as f:
+        pickle.dump([], f)
+if not os.path.exists(TT_DIR):
+    os.makedirs(TT_DIR)
+if not os.path.exists(MEMO_DIR):
+    os.makedirs(MEMO_DIR)
 
 class FaceRecognitionApp:
     def __init__(self, root):
@@ -25,25 +48,22 @@ class FaceRecognitionApp:
         self.root.title("AI University Student Logging System")
 
         self.running = False
+        self.encoding_file = ENCODE_FILE
         self.known_encodings, self.known_ids, self.known_labels = self.load_encodings()
 
-        self.create_widgets()
-
-    def create_widgets(self):
-        reg_frame = tk.LabelFrame(self.root, text="Control Panel")
+        reg_frame = tk.LabelFrame(root, text="Control Panel")
         reg_frame.pack(side=tk.LEFT, padx=10, pady=10)
 
-        tk.Button(reg_frame, text="Start Camera", command=self.start_camera).pack(fill='x', pady=3)
-        tk.Button(reg_frame, text="Register Student", command=self.open_registration_form).pack(fill='x', pady=3)
-        tk.Button(reg_frame, text="Train Dataset", command=self.train_dataset).pack(fill='x', pady=3)
-        tk.Button(reg_frame, text="View Students", command=self.view_students).pack(fill='x', pady=3)
-        tk.Button(reg_frame, text="Filter Logs by Date", command=self.filter_logs_by_date).pack(fill='x', pady=3)
-        tk.Button(reg_frame, text="Exit", command=self.root.quit).pack(fill='x', pady=3)
+        tk.Button(reg_frame, text="Start Camera", command=self.start_camera).grid(row=0, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="Register Student", command=self.open_registration_form).grid(row=1, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="Train Dataset", command=self.train_dataset).grid(row=2, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="View Students", command=self.view_students).grid(row=3, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="📄 Generate Report", command=lambda: ReportGenerator(self.root)).grid(row=4, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="Upload Memo", command=self.upload_memo).grid(row=5, column=0, columnspan=2, pady=5)
+        tk.Button(reg_frame, text="Upload Timetable", command=self.upload_timetable_pdf).grid(row=6, column=0,columnspan=2, pady=5)
+        tk.Button(reg_frame, text="Exit", command=self.root.quit).grid(row=7, column=0, columnspan=2, pady=5)
 
-        self.progress = ttk.Progressbar(reg_frame, mode='indeterminate')
-        self.progress.pack(fill='x', pady=5)  
-
-        cam_frame = tk.LabelFrame(self.root, text="Live Camera")
+        cam_frame = tk.LabelFrame(root, text="Live Camera")
         cam_frame.pack(side=tk.RIGHT, padx=10, pady=10)
 
         self.video_label = tk.Label(cam_frame)
@@ -51,6 +71,27 @@ class FaceRecognitionApp:
 
         self.log_text = tk.Text(cam_frame, height=10, width=50)
         self.log_text.pack(pady=10)
+
+        self.thread = threading.Thread(target=self.recognize_faces, daemon=True)
+        self.thread.start()
+
+        self.progress = ttk.Progressbar(reg_frame, mode='indeterminate')
+
+    def open_registration_form(self):
+        StudentRegistrationForm(self.root, self.auto_train_after_register)
+
+    def auto_train_after_register(self):
+        self.train_dataset()
+
+    def train_dataset(self):
+        self.progress.grid(row=7, column=0, columnspan=2, pady=5)
+        self.progress.start()
+        self.root.update_idletasks()
+        train_all_faces()
+        self.known_encodings, self.known_ids, self.known_labels = self.load_encodings()
+        self.progress.stop()
+        self.progress.grid_remove()
+        messagebox.showinfo("Training Complete", "All faces have been trained and encodings saved.")
 
     def load_encodings(self):
         if not os.path.exists(ENCODE_FILE):
@@ -62,35 +103,68 @@ class FaceRecognitionApp:
         names = [item['name'] for item in data]
         return encodings, ids, names
 
-    def refresh_encodings(self):
-        self.known_encodings, self.known_ids, self.known_labels = self.load_encodings()
+    def upload_memo(self):
+        file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
+        if not file_path:
+            return
 
-    def open_registration_form(self):
-        StudentRegistrationForm(self.root, self.auto_train_after_register)
+        dest_path = os.path.join(MEMO_DIR, os.path.basename(file_path))
+        shutil.copy(file_path, dest_path)
 
-    def auto_train_after_register(self):
-        self.train_dataset()
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT email FROM students")
+        emails = [row[0] for row in c.fetchall() if row[0]]
+        conn.close()
 
-    def train_dataset(self):
-        self.progress.start()
-        self.root.update_idletasks()
-        train_all_faces()
-        self.refresh_encodings()
-        self.progress.stop()
-        messagebox.showinfo("Training Complete", "All faces have been trained and encodings saved.")
+        for email in emails:
+            try:
+                msg = EmailMessage()
+                msg['Subject'] = 'New University Memo'
+                msg['From'] = GMAIL_ADDRESS
+                msg['To'] = email
+                msg.set_content('Dear student,\n\nPlease find the attached university memo.\n\nRegards,\nUniversity Admin')
+
+                with open(dest_path, 'rb') as f:
+                    file_data = f.read()
+                    msg.add_attachment(file_data, maintype='application', subtype='pdf', filename=os.path.basename(file_path))
+
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+                    smtp.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
+                    smtp.send_message(msg)
+
+            except Exception as e:
+                print(f"❌ Failed to send memo to {email}: {e}")
+
+        messagebox.showinfo("Success", f"📨 Memo uploaded and sent to {len(emails)} students.")
+
+    def upload_timetable_pdf(self):
+        file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
+        if not file_path:
+            return
+
+        dest_path = os.path.join(TT_DIR, os.path.basename(file_path))
+        shutil.copy(file_path, dest_path)
+
+        raw_text = extract_text_from_pdf(dest_path)
+        parse_timetable_text(raw_text)
+
+        messagebox.showinfo("Success", "Timetable uploaded and parsed successfully.")
 
     def view_students(self):
         top = tk.Toplevel(self.root)
         top.title("Registered Students")
 
-        tree = ttk.Treeview(top, columns=("ID", "Name"), show='headings')
+        tree = ttk.Treeview(top, columns=("ID", "Name", "Email", "Course"), show='headings')
         tree.heading("ID", text="Student ID")
         tree.heading("Name", text="Name")
+        tree.heading("Email", text="Email")
+        tree.heading("Course", text="Course")
         tree.pack(fill=tk.BOTH, expand=True)
 
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
-        c.execute("SELECT student_id, name FROM students")
+        c.execute("SELECT student_id, name, email, course FROM students")
         for row in c.fetchall():
             tree.insert('', tk.END, values=row)
         conn.close()
@@ -140,9 +214,13 @@ class FaceRecognitionApp:
         tk.Button(top, text="Fetch Logs", command=fetch_logs).pack(pady=5)
 
     def start_camera(self):
-        if not self.known_encodings:
-            messagebox.showwarning("No Encodings", "Train dataset before starting camera.")
+        if not os.path.exists(self.encoding_file):
+            messagebox.showwarning("Missing Encodings", "Please train the dataset first.")
             return
+        with open(self.encoding_file, 'rb') as f:
+            data = pickle.load(f)
+            self.known_encodings = [item['encoding'] for item in data]
+            self.known_labels = [item['name'] for item in data]
         self.running = True
         threading.Thread(target=self.recognize_faces).start()
 
@@ -170,6 +248,10 @@ class FaceRecognitionApp:
                         name = self.known_labels[best_match]
                         status = determine_status(student_id)
                         log_attendance(student_id, name, status)
+
+                        if status == "login":
+                            notify_student_on_login(student_id, name)
+
                         color = (0, 0, 255)
 
                         self.log_text.insert(tk.END, f"{name} ({student_id}) - {status}\n")

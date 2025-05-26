@@ -8,8 +8,11 @@ def init_db():
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id TEXT,
-            name TEXT
+            name TEXT,
+            email TEXT,
+            course TEXT
         )
     ''')
     c.execute('''
@@ -32,3 +35,4 @@ def log_attendance(student_id, name, status):
               (student_id, name, timestamp, status))
     conn.commit()
     conn.close()
+

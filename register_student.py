@@ -1,14 +1,20 @@
 import tkinter as tk
-from tkinter import messagebox, filedialog
+from tkinter import messagebox, filedialog, ttk
 import cv2
 import os
 import face_recognition
 import pickle
 import shutil
+import sqlite3
 from datetime import datetime
 
 IMG_DIR = 'student_images'
 ENCODE_FILE = 'face_recognizer/encodings.pkl'
+COURSES = [
+    'bsey1s2', 'bsey2s2', 'bsey3s2', 'bsey4s2',
+    'bcsy1s2', 'bcsy2s2', 'bcsy3s2', 'bcsy4s2',
+    'bity1s2', 'bity2s2', 'bity3s2', 'bity4s2'
+]
 
 class StudentRegistrationForm:
     def __init__(self, master, refresh_callback):
@@ -24,8 +30,18 @@ class StudentRegistrationForm:
         self.entry_name = tk.Entry(self.top)
         self.entry_name.grid(row=1, column=1, pady=5)
 
+        tk.Label(self.top, text="Email").grid(row=2, column=0, pady=5)
+        self.entry_email = tk.Entry(self.top)
+        self.entry_email.grid(row=2, column=1, pady=5)
+
+        tk.Label(self.top, text="Course").grid(row=3, column=0, pady=5)
+        self.course_var = tk.StringVar()
+        self.course_menu = ttk.Combobox(self.top, textvariable=self.course_var, values=COURSES, state="readonly")
+        self.course_menu.grid(row=3, column=1, pady=5)
+        self.course_menu.set(COURSES[0])
+
         btn_frame = tk.Frame(self.top)
-        btn_frame.grid(row=2, column=0, columnspan=2, pady=10)
+        btn_frame.grid(row=4, column=0, columnspan=2, pady=10)
 
         tk.Button(btn_frame, text="📷 Capture via Camera", command=self.capture_from_camera).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="📁 Upload Images", command=self.upload_images).pack(side=tk.LEFT, padx=5)
@@ -127,12 +143,20 @@ class StudentRegistrationForm:
     def save_encodings(self):
         student_id = self.entry_id.get().strip().replace('/', '_')
         name = self.entry_name.get().strip().replace('/', '_')
+        email = self.entry_email.get().strip()
+        course = self.course_var.get().strip()
 
+        if not all([student_id, name, email, course]):
+            messagebox.showerror("Error", "All fields must be filled in.")
+            return
+
+        # Load existing encodings
         encodings_data = []
         if os.path.exists(ENCODE_FILE):
             with open(ENCODE_FILE, 'rb') as f:
                 encodings_data = pickle.load(f)
 
+        # Append new encodings directly with proper student_id and name
         for path, image, boxes in self.captured_data:
             try:
                 encoding = face_recognition.face_encodings(image, known_face_locations=boxes)[0]
@@ -142,17 +166,20 @@ class StudentRegistrationForm:
                     'encoding': encoding
                 })
             except Exception as e:
-                print(f"Failed to encode {path}:", e)
+                print(f"❌ Failed to encode {path}: {e}")
 
         with open(ENCODE_FILE, 'wb') as f:
             pickle.dump(encodings_data, f)
-        import sqlite3
+
+        # Insert student info into database
         conn = sqlite3.connect("database/attendance.db")
         c = conn.cursor()
-        c.execute("INSERT OR IGNORE INTO students (student_id, name) VALUES (?, ?)", (student_id, name))
+        c.execute("""
+            INSERT OR IGNORE INTO students (student_id, name, email, course)
+            VALUES (?, ?, ?, ?)""", (student_id, name, email, course))
         conn.commit()
         conn.close()
 
         self.refresh_callback()
         self.top.destroy()
-        messagebox.showinfo("Success", f"Registered {name} and updated encoding file.")
+        messagebox.showinfo("Success", f"✅ Registered {name} and updated encoding file.")
