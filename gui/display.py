@@ -22,6 +22,7 @@ from email.message import EmailMessage
 from utils.notification import notify_student_on_login
 from report_generator import ReportGenerator
 from home_dashboard import HomeDashboard
+import pyttsx3 as engine
 
 GMAIL_ADDRESS = "muaemmanuel2022@gmail.com"          # Replace with your Gmail
 GMAIL_APP_PASSWORD = "zajx derh jmmz vpgu" 
@@ -273,8 +274,10 @@ class FaceRecognitionApp:
 
                         self.log_text.insert(tk.END, f"{name} ({student_id}) - {status}\n")
                         self.log_text.see(tk.END)
-
-                label = f"{name} ({student_id}) - {status}" if name != "Unknown" else "Unknown"
+                        engine.speak(f"{name} ({student_id}) has logged {status} at {datetime.now().strftime('%H:%M:%S')}")
+                        engine.speak(f"The student has been recognized by the system")
+                label = f"{name} ({student_id}) - {status}" if name != "Unknown" else "Unknown" 
+                
                 cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
                 cv2.putText(frame, label, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 

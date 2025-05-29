@@ -9,7 +9,7 @@ def init_db():
     c.execute('''
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            student_id TEXT,
+            student_id TEXT UNIQUE,
             name TEXT,
             email TEXT,
             course TEXT
@@ -35,4 +35,3 @@ def log_attendance(student_id, name, status):
               (student_id, name, timestamp, status))
     conn.commit()
     conn.close()
-
