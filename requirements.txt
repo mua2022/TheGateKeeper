@@ -10,7 +10,6 @@ Pillow
 SQLAlchemy
 
 # Email
-smtplib  # built-in, no pip install needed
 email-validator
 
 # Liveness detection / image processing extras
