@@ -1,24 +1,11 @@
-# Core
 streamlit
-opencv-python
-face-recognition
+opencv-python-headless
+deepface
 numpy
 pandas
 Pillow
-
-# Database
 SQLAlchemy
-
-# Email
 email-validator
-
-# Liveness detection / image processing extras
-dlib
-imutils
-
-# For sending emails securely
 python-dotenv
-
-# Optional (but useful for plotting or dashboard extras)
 matplotlib
 seaborn
