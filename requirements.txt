@@ -1,0 +1,25 @@
+# Core
+streamlit
+opencv-python
+face-recognition
+numpy
+pandas
+Pillow
+
+# Database
+SQLAlchemy
+
+# Email
+smtplib  # built-in, no pip install needed
+email-validator
+
+# Liveness detection / image processing extras
+dlib
+imutils
+
+# For sending emails securely
+python-dotenv
+
+# Optional (but useful for plotting or dashboard extras)
+matplotlib
+seaborn
